@@ -1,0 +1,7 @@
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\bin\Debug\RosterToCalendarEvent.exe.config
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\bin\Debug\RosterToCalendarEvent.exe
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\bin\Debug\RosterToCalendarEvent.pdb
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\obj\Debug\RosterToCalendarEvent.csprojAssemblyReference.cache
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\obj\Debug\RosterToCalendarEvent.csproj.CoreCompileInputs.cache
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\obj\Debug\RosterToCalendarEvent.exe
+D:\Documents\Visual Studio 2019\Projects\RosterToCalendarEvent\RosterToCalendarEvent\obj\Debug\RosterToCalendarEvent.pdb
