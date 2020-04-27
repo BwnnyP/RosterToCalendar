@@ -177,7 +177,7 @@ namespace RosterToCalendarEvent
                 p.GetMonthNum(words[2]);
 
                 // Append line of CSV
-                newLine = string.Format("Ben Work,{0}/{1}/{2},{3}:{4} {5},{0}/{1}/{2},{6}:{7} PM", p.DayDate, p.Month, DateTime.Today.Year, p.StartHour, p.StartMinute, p.StartPrefix, p.FinishHour, p.FinishMinute);
+                newLine = string.Format("Work,{0}/{1}/{2},{3}:{4} {5},{0}/{1}/{2},{6}:{7} PM", p.DayDate, p.Month, DateTime.Today.Year, p.StartHour, p.StartMinute, p.StartPrefix, p.FinishHour, p.FinishMinute);
                 roster.AppendLine(newLine);
 
                 // Calculate hours
