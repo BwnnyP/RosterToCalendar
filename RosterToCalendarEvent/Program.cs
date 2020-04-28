@@ -1,10 +1,14 @@
-﻿using System;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.Globalization;
+using System.Threading;
 
 namespace RosterToCalendarEvent
 {
@@ -15,6 +19,46 @@ namespace RosterToCalendarEvent
         bool AddShift = true;
         bool PHOFF = false;
         public DateTime startTime, endTime;
+
+        // Required for Google integration
+        // If modifying these scopes, delete your previously saved credentials
+        // at ~/.credentials/calendar-dotnet-quickstart.json
+        static string[] Scopes = { CalendarService.Scope.Calendar };
+        static string ApplicationName = "Google Calendar API .NET Quickstart";
+
+        // Create Calendar Event in Google
+        public void ConnectToAPI(Event ev, string calendarId)
+        {
+            UserCredential credential;
+
+            using (var stream =
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            {
+                // The file token.json stores the user's access and refresh tokens, and is created
+                // automatically when the authorization flow completes for the first time.
+                string credPath = "token.json";
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(GoogleClientSecrets.Load(stream).Secrets, Scopes, "user", CancellationToken.None, new FileDataStore(credPath, true)).Result;
+                // Console.WriteLine("Credential file saved to: " + credPath);      // Uneeded
+            }
+
+            // Create Google Calendar API service.
+            var service = new CalendarService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            // Define parameters of request.
+            EventsResource.ListRequest request = service.Events.List("primary");
+            request.TimeMin = DateTime.Now;
+            request.ShowDeleted = false;
+            request.SingleEvents = true;
+            request.MaxResults = 10;
+            request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+
+            // Create Event
+            service.Events.Insert(ev, calendarId).Execute();
+        }
 
         public int GetMonthNum(string month)
         {
@@ -74,6 +118,9 @@ namespace RosterToCalendarEvent
                 input.Add(line);
             }
 
+            Console.WriteLine("Thank you! Adding to your calendar now!");
+
+            /*
             Console.WriteLine("Thank you!\nNow please enter the path to save the CSV file:");
             string path = Console.ReadLine();
 
@@ -83,18 +130,37 @@ namespace RosterToCalendarEvent
             // Write headings in CSV
             var newLine = string.Format("{0},{1},{2},{3},{4}", "Subject", "Start Date", "Start Time", "End Date", "End Time");
             roster.AppendLine(newLine);
+            */
 
-            // Add shifts to CSV
+            // Add shifts to Google calendar
             for (int i = 0; i < input.Count; i++)
             {
                 // Get shift start and end time
                 p.GetShiftDateTime(input[i]);
 
-                if (p.AddShift) // Check if shift to add to CSV
+                if (p.AddShift) // Check if shift to add to Google calendar
                 {
+                    /*
                     // Append line of CSV
                     newLine = string.Format("Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
                     roster.AppendLine(newLine);
+                    */
+
+                    // Add to Google
+                    var ev = new Event();
+                    EventDateTime start = new EventDateTime();
+                    start.DateTime = new DateTime(DateTime.Now.Year, p.startTime.Month, p.startTime.Day, p.startTime.Hour, p.startTime.Minute, 0);
+
+                    EventDateTime end = new EventDateTime();
+                    end.DateTime = new DateTime(DateTime.Now.Year, p.endTime.Month, p.endTime.Day, p.endTime.Hour, p.endTime.Minute, 0);
+
+                    ev.Start = start;
+                    ev.End = end;
+
+                    ev.Summary = "Work";
+                    string calendarId = "primary";
+
+                    p.ConnectToAPI(ev, calendarId);
                 }
                 p.AddShift = true; // Reset back to add shift
             }
@@ -109,10 +175,12 @@ namespace RosterToCalendarEvent
                 Console.WriteLine("Number of PHOFF hours this month: " + p.NumPhoffH);
             }
 
+            /*
             // Write to CSV
             File.WriteAllText(path + "\\Roster.csv", roster.ToString());
-                       
-            Console.WriteLine("\nDone! Your file has been saved to " + path + "\\Roster.csv");
+            */
+
+            Console.WriteLine("\nDone! Your shifts have been saved to you Google calendar!");
             Console.ReadLine();
         }
     }
