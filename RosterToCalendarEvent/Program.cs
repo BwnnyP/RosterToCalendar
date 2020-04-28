@@ -2,146 +2,49 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using Microsoft.Win32;
 
 namespace RosterToCalendarEvent
 {
     class Program
     {
-
         public int NumShifts = 0;
         public double NumHours = 0;
-        public string DayDate, Month, StartHour, StartMinute, StartPrefix, FinishHour, FinishMinute;
+        public DateTime startTime, endTime;
 
-        public void GetMonthNum(string month)
+        public int GetMonthNum(string month)
         {
             // Create array with months
             string[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
             int index = Array.IndexOf(months, month) + 1;
 
-            if (index < 10)
-            {
-                Month = ("0" + index.ToString());
-            }
-            else
-            {
-                Month = index.ToString();
-            }
+            return index;
         } 
         public void GetShiftDateTime(string shift)
         {
             // Pass each line from message through to another statement and break up into numbers
             string[] numbers = Regex.Split(shift, @"\D+");
+    
+            // Split into words
+            string[] words = shift.Split(' ');
 
-            // Assign to variables
-            // Day date
-            if (int.Parse(numbers[1]) < 10)
-            {
-                DayDate = ("0" + numbers[1]);
-            }
-            else
-            {
-                DayDate = numbers[1];
-            }
-
-            //Start hour and prefix
-            if (int.Parse(numbers[2]) > 12)
-            {
-                StartHour = "0" + (int.Parse(numbers[2]) - 12).ToString();
-                StartPrefix = "PM";
-            }
-            else if (int.Parse(numbers[2]) == 12)
-            {
-                StartHour = numbers[2];
-                StartPrefix = "PM";
-            }
-            else
-            {
-                if (int.Parse(numbers[2]) < 10)
-                {
-                    StartHour = (/*"0" + */numbers[2]);
-                }
-                else
-                {
-                    StartHour = numbers[2];
-                }
-                StartPrefix = "AM";
-            }
-
-            // Start minute
-            if (int.Parse(numbers[3]) == 0)
-            {
-                StartMinute = "00";
-            }
-            else
-            {
-                StartMinute = numbers[3];
-            }
-
-            // Finish hour
-            FinishHour = "0" + (int.Parse(numbers[4]) - 12).ToString();
-
-            // Finish minute
-            if (int.Parse(numbers[5]) == 0)
-            {
-                FinishMinute = "00";
-            }
-            else
-            {
-                FinishMinute = numbers[5];
-            }
-        }
-
-        public void CalculateHours(string startHour, string startMinute, string finishHour, string finishMinute, string day, string month, string prefix)
-        {
-            string adjustedHour;
-            if (prefix == "AM")
-            {
-                adjustedHour = startHour;
-            }
-            else
-            {
-                if (Int32.Parse(startHour) == 12)
-                {
-                    adjustedHour = startHour;
-                }
-                else
-                {
-                    adjustedHour = (Int32.Parse(startHour) + 12).ToString();
-                }
-            }
-
-            finishHour = (Int32.Parse(finishHour) + 12).ToString();
-
-            // Start time
-            String strDate = string.Format("{0}/{1}/{2} {3}:{4}:00", day, month, DateTime.Now.Year, adjustedHour, startMinute);
-            DateTime StartDT = DateTime.ParseExact(strDate, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-
-            // End time
-            strDate = string.Format("{0}/{1}/{2} {3}:{4}:00", day, month, DateTime.Now.Year, finishHour, finishMinute);
-            DateTime endDT = DateTime.ParseExact(strDate, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            // Generate Shift
+            startTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[2]), Int32.Parse(numbers[3]), 0);
+            endTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[4]), Int32.Parse(numbers[5]), 0);
 
             // Add hours
-            NumHours += ((endDT - StartDT).TotalMinutes) / 60;
-        }
+            NumHours += ((endTime - startTime).TotalMinutes) / 60;
 
+            // Add number of shifts once can recognise input string
+        }
 
         static void Main(string[] args)
         {
-            
             // Set up public variables
             Program p = new Program();
-
-            // If want to use txt file:
-            //string[] input = File.ReadAllLines("D:\\Desktop\\Shifts.txt");
 
             // Shifts input
             Console.WriteLine("Please paste the text you received below and press enter twice!");
@@ -157,7 +60,7 @@ namespace RosterToCalendarEvent
             Console.WriteLine("Thank you! \n\nNow please enter the path to save the CSV file:");
             string path = Console.ReadLine();
 
-            // Calculate number of shifts 
+            // Calculate number of shifts           NEED TO CHANGE
             p.NumShifts = input.Count() - 2;
 
             // Set up CSV
@@ -170,18 +73,18 @@ namespace RosterToCalendarEvent
             // Add shifts to CSV
             for (int i = 1; i < (p.NumShifts + 1); i++)
             {
+                // Get shift start and end time
                 p.GetShiftDateTime(input[i]);
 
+                /*
                 // get month
                 string[] words = input[i].Split(' ');
                 p.GetMonthNum(words[2]);
+                */
 
                 // Append line of CSV
-                newLine = string.Format("Ben Work,{0}/{1}/{2},{3}:{4} {5},{0}/{1}/{2},{6}:{7} PM", p.DayDate, p.Month, DateTime.Today.Year, p.StartHour, p.StartMinute, p.StartPrefix, p.FinishHour, p.FinishMinute);
+                newLine = string.Format("Ben Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
                 roster.AppendLine(newLine);
-
-                // Calculate hours
-                p.CalculateHours(p.StartHour, p.StartMinute, p.FinishHour, p.FinishMinute, p.DayDate, p.Month, p.StartPrefix);
             }
 
             // Number of shifts and hours output to console
