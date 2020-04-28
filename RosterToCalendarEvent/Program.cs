@@ -83,11 +83,7 @@ namespace RosterToCalendarEvent
                 */
 
                 // Append line of CSV
-<<<<<<< HEAD
-                newLine = string.Format("Ben Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
-=======
-                newLine = string.Format("Work,{0}/{1}/{2},{3}:{4} {5},{0}/{1}/{2},{6}:{7} PM", p.DayDate, p.Month, DateTime.Today.Year, p.StartHour, p.StartMinute, p.StartPrefix, p.FinishHour, p.FinishMinute);
->>>>>>> 0fee2e5b58158abb178ee83cf10ddc05683f24ba
+                newLine = string.Format("Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
                 roster.AppendLine(newLine);
             }
 
