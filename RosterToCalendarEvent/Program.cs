@@ -10,8 +10,10 @@ namespace RosterToCalendarEvent
 {
     class Program
     {
-        public int NumShifts = 0;
-        public double NumHours = 0;
+        public int NumShifts, NumPhoffS = 0;
+        public double NumHours, NumPhoffH = 0;
+        bool AddShift = true;
+        bool PHOFF = false;
         public DateTime startTime, endTime;
 
         public int GetMonthNum(string month)
@@ -25,20 +27,35 @@ namespace RosterToCalendarEvent
         } 
         public void GetShiftDateTime(string shift)
         {
-            // Pass each line from message through to another statement and break up into numbers
-            string[] numbers = Regex.Split(shift, @"\D+");
-    
             // Split into words
             string[] words = shift.Split(' ');
 
-            // Generate Shift
-            startTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[2]), Int32.Parse(numbers[3]), 0);
-            endTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[4]), Int32.Parse(numbers[5]), 0);
+            if (words.Length < 3 | words[0] == "Access")
+            {
+                AddShift = false;
+            }
+            else
+            {
+                // Pass each line from message through to another statement and break up into numbers
+                string[] numbers = Regex.Split(shift, @"\D+");
 
-            // Add hours
-            NumHours += ((endTime - startTime).TotalMinutes) / 60;
+                if (words[3] == "PHOFF")
+                {
+                    NumPhoffS++;
+                    NumPhoffH += (Int32.Parse(numbers[2]) + (double.Parse(numbers[3]) / 100));
+                    PHOFF = true;
+                }
+                else
+                {
+                    // Generate Shift
+                    startTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[2]), Int32.Parse(numbers[3]), 0);
+                    endTime = new DateTime(DateTime.Now.Year, GetMonthNum(words[2]), Int32.Parse(numbers[1]), Int32.Parse(numbers[4]), Int32.Parse(numbers[5]), 0);
 
-            // Add number of shifts once can recognise input string
+                    // Add hours
+                    NumHours += ((endTime - startTime).TotalMinutes) / 60;
+                    NumShifts++;
+                }
+            }
         }
 
         static void Main(string[] args)
@@ -57,11 +74,8 @@ namespace RosterToCalendarEvent
                 input.Add(line);
             }
 
-            Console.WriteLine("Thank you! \n\nNow please enter the path to save the CSV file:");
+            Console.WriteLine("Thank you!\nNow please enter the path to save the CSV file:");
             string path = Console.ReadLine();
-
-            // Calculate number of shifts           NEED TO CHANGE
-            p.NumShifts = input.Count() - 2;
 
             // Set up CSV
             StringBuilder roster = new StringBuilder();
@@ -71,25 +85,29 @@ namespace RosterToCalendarEvent
             roster.AppendLine(newLine);
 
             // Add shifts to CSV
-            for (int i = 1; i < (p.NumShifts + 1); i++)
+            for (int i = 0; i < input.Count; i++)
             {
                 // Get shift start and end time
                 p.GetShiftDateTime(input[i]);
 
-                /*
-                // get month
-                string[] words = input[i].Split(' ');
-                p.GetMonthNum(words[2]);
-                */
-
-                // Append line of CSV
-                newLine = string.Format("Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
-                roster.AppendLine(newLine);
+                if (p.AddShift) // Check if shift to add to CSV
+                {
+                    // Append line of CSV
+                    newLine = string.Format("Work,{0}/{1}/{2},{3}:{4},{0}/{1}/{2},{5}:{6}", p.startTime.Day, p.startTime.Month, DateTime.Today.Year, p.startTime.Hour, p.startTime.Minute, p.endTime.Hour, p.endTime.Minute);
+                    roster.AppendLine(newLine);
+                }
+                p.AddShift = true; // Reset back to add shift
             }
 
             // Number of shifts and hours output to console
             Console.WriteLine("\nNumber of shifts this month: " + p.NumShifts);
             Console.WriteLine("Number of hours this month: " + p.NumHours);
+
+            if (p.PHOFF)
+            {
+                Console.WriteLine("Number of PHOFF shifts this month: " + p.NumPhoffS);
+                Console.WriteLine("Number of PHOFF hours this month: " + p.NumPhoffH);
+            }
 
             // Write to CSV
             File.WriteAllText(path + "\\Roster.csv", roster.ToString());
