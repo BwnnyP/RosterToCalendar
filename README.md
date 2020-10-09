@@ -1,5 +1,5 @@
 # RosterToCalendar
-Telstra CA's for easy of ROSS text to calendar event
+Telstra CA's for easy add of ROSS text to calendar event
 
 To use the program:
 1. Open exe file
